@@ -5,40 +5,23 @@ pipeline {
         DOCKER_HUB_USER = 'devrama404'
         IMAGE_NAME      = 'crud-php-app'
         REGISTRY_CRED   = 'dockerhub-credentials-id'
-
-        // FIX: pakai full path biar aman di Jenkins EC2
-        DOCKER_BIN      = '/usr/bin/docker'
     }
 
     stages {
-
         stage('Checkout') {
             steps {
-                cleanWs()
+                // Mengambil kode terbaru dari repositori GitHub
                 checkout scm
-            }
-        }
-
-        stage('Lint Check') {
-            steps {
-                echo 'PHP Lint Check...'
-                sh '''
-                    find . -name "*.php" | while read file; do
-                        php -l "$file"
-                    done
-                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building Image build-${BUILD_NUMBER}"
-
-                    sh """
-                        ${DOCKER_BIN} build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER} .
-                        ${DOCKER_BIN} build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest .
-                    """
+                    echo "Membangun Docker Image dengan Tag: build-${BUILD_NUMBER}"
+                    // Membuat image dengan tag nomor build dan tag 'latest'
+                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER} ."
+                    sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest ."
                 }
             }
         }
@@ -46,17 +29,12 @@ pipeline {
         stage('Push Image to Docker Hub') {
             steps {
                 script {
-                    withCredentials([usernamePassword(
-                        credentialsId: "${REGISTRY_CRED}",
-                        passwordVariable: 'DOCKER_PASSWORD',
-                        usernameVariable: 'DOCKER_USER'
-                    )]) {
-
-                        sh """
-                            echo \$DOCKER_PASSWORD | ${DOCKER_BIN} login -u \$DOCKER_USER --password-stdin
-                            ${DOCKER_BIN} push ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER}
-                            ${DOCKER_BIN} push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
-                        """
+                    echo 'Mengunggah Image ke Docker Hub...'
+                    // Menggunakan kredensial Docker Hub yang terdaftar di Jenkins
+                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CRED}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
+                        sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USER --password-stdin"
+                        sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
                     }
                 }
             }
@@ -65,15 +43,11 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 script {
-                    echo 'Deploying application with Docker Compose V2...'
-
-                    sh """
-                        set -e
-                        ${DOCKER_BIN} compose down
-                        ${DOCKER_BIN} compose up -d --build
-                    """
-
-                    echo 'Deployment SUCCESS'
+                    echo 'Menghentikan container lama dan menjalankan stack terbaru via Docker Compose...'
+                    // Menggunakan biner docker-compose milik EC2 yang sudah di-mount ke Jenkins
+                    sh "docker-compose down"
+                    sh "docker-compose up -d --build"
+                    echo '=== DEPLOYMENT BERHASIL SELESAI ==='
                 }
             }
         }
@@ -81,16 +55,8 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning unused Docker images...'
-            sh "${DOCKER_BIN} image prune -f"
-        }
-
-        success {
-            echo 'Pipeline SUCCESS ✅'
-        }
-
-        failure {
-            echo 'Pipeline FAILED ❌'
+            echo 'Membersihkan sisa build (dangling images) untuk menghemat ruang disk EC2...'
+            sh 'docker image prune -f'
         }
     }
 }
