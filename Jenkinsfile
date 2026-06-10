@@ -6,7 +6,7 @@ pipeline {
         IMAGE_NAME      = 'crud-php-app'
         REGISTRY_CRED   = 'dockerhub-credentials-id'
 
-        // FIX PENTING: pakai full path docker
+        // FIX: pakai full path biar aman di Jenkins EC2
         DOCKER_BIN      = '/usr/bin/docker'
     }
 
@@ -21,9 +21,11 @@ pipeline {
 
         stage('Lint Check') {
             steps {
-                echo 'Melakukan Validasi Sintaks PHP...'
+                echo 'PHP Lint Check...'
                 sh '''
-                    find . -name "*.php" -exec php -l {} \;
+                    find . -name "*.php" | while read file; do
+                        php -l "$file"
+                    done
                 '''
             }
         }
@@ -31,7 +33,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building Image Tag: build-${BUILD_NUMBER}"
+                    echo "Building Image build-${BUILD_NUMBER}"
 
                     sh """
                         ${DOCKER_BIN} build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER} .
@@ -49,6 +51,7 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD',
                         usernameVariable: 'DOCKER_USER'
                     )]) {
+
                         sh """
                             echo \$DOCKER_PASSWORD | ${DOCKER_BIN} login -u \$DOCKER_USER --password-stdin
                             ${DOCKER_BIN} push ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER}
@@ -62,7 +65,7 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 script {
-                    echo 'Deploying container with Docker Compose V2...'
+                    echo 'Deploying application with Docker Compose V2...'
 
                     sh """
                         set -e
@@ -70,7 +73,7 @@ pipeline {
                         ${DOCKER_BIN} compose up -d --build
                     """
 
-                    echo 'Deployment Berhasil Selesai!'
+                    echo 'Deployment SUCCESS'
                 }
             }
         }
@@ -78,8 +81,16 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning dangling images...'
+            echo 'Cleaning unused Docker images...'
             sh "${DOCKER_BIN} image prune -f"
+        }
+
+        success {
+            echo 'Pipeline SUCCESS ✅'
+        }
+
+        failure {
+            echo 'Pipeline FAILED ❌'
         }
     }
 }
