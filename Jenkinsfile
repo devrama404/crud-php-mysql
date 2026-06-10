@@ -10,7 +10,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Mengambil kode program terbaru dari GitHub
                 checkout scm
             }
         }
@@ -19,7 +18,6 @@ pipeline {
             steps {
                 script {
                     echo "Membangun Docker Image dengan Tag: build-${BUILD_NUMBER}"
-                    // Membangun image dengan tag spesifik nomor build dan tag 'latest'
                     sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER} ."
                     sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest ."
                 }
@@ -30,7 +28,6 @@ pipeline {
             steps {
                 script {
                     echo 'Mengunggah Image ke Docker Hub...'
-                    // Otentikasi otomatis menggunakan kredensial Docker Hub yang ada di Jenkins
                     withCredentials([usernamePassword(credentialsId: "${REGISTRY_CRED}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
                         sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USER --password-stdin"
                         sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER}"
@@ -88,10 +85,12 @@ pipeline {
                         nginx:alpine
                     """
 
-                    echo 'Menyalin source code web dari Workspace Jenkins ke dalam container PHP dan Nginx...'
-                    // Ini kunci utama agar halaman web tidak memunculkan eror 404 lagi
+                    echo 'Menyalin source code web dari Workspace Jenkins ke dalam container...'
+                    // PHP-FPM menggunakan /var/www/html (bawaan image PHP)
                     sh "docker cp . php_app:/var/www/html/"
-                    sh "docker cp . nginx_webserver:/var/www/html/"
+                    
+                    // Nginx menggunakan /usr/share/nginx/html (bawaan image Nginx Alpine)
+                    sh "docker cp . nginx_webserver:/usr/share/nginx/html/"
 
                     echo 'Menyuntikkan konfigurasi nginx.conf langsung ke dalam container Nginx...'
                     sh """
@@ -101,7 +100,7 @@ server {
     index index.php index.html;
     error_log  /var/log/nginx/error.log;
     access_log /var/log/nginx/access.log;
-    root /var/www/html;
+    root /usr/share/nginx/html; # <-- Diubah ke folder default Nginx
 
     location ~ \\.php\$ {
         try_files \$uri =404;
@@ -109,7 +108,7 @@ server {
         fastcgi_pass php_app:9000;
         fastcgi_index index.php;
         include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME /var/www/html\$fastcgi_script_name; # <-- Arahkan ke root PHP-FPM
         fastcgi_param PATH_INFO \$fastcgi_path_info;
     }
 
