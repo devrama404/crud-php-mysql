@@ -86,11 +86,17 @@ pipeline {
                     """
 
                     echo 'Menyalin source code web dari Workspace Jenkins ke dalam container...'
-                    // PHP-FPM menggunakan /var/www/html (bawaan image PHP)
                     sh "docker cp . php_app:/var/www/html/"
-                    
-                    // Nginx menggunakan /usr/share/nginx/html (bawaan image Nginx Alpine)
                     sh "docker cp . nginx_webserver:/usr/share/nginx/html/"
+
+                    echo 'Menyuntikkan file SQL agar database otomatis terisi...'
+                    // =================================================================================
+                    // JIKA NAMA FILE .SQL KAMU BUKAN database.sql, GANTI TULISAN DI BAWAH INI YA!
+                    // =================================================================================
+                    sh "docker cp database.sql mysql_db:/docker-entrypoint-initdb.d/"
+                    
+                    echo 'Memicu MySQL untuk membaca file database baru...'
+                    sh "docker exec -i mysql_db sh -c 'mysql -uuser -puserpassword crud_db < /docker-entrypoint-initdb.d/*.sql || true'"
 
                     echo 'Menyuntikkan konfigurasi nginx.conf langsung ke dalam container Nginx...'
                     sh """
@@ -100,7 +106,7 @@ server {
     index index.php index.html;
     error_log  /var/log/nginx/error.log;
     access_log /var/log/nginx/access.log;
-    root /usr/share/nginx/html; # <-- Diubah ke folder default Nginx
+    root /usr/share/nginx/html;
 
     location ~ \\.php\$ {
         try_files \$uri =404;
@@ -108,7 +114,7 @@ server {
         fastcgi_pass php_app:9000;
         fastcgi_index index.php;
         include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME /var/www/html\$fastcgi_script_name; # <-- Arahkan ke root PHP-FPM
+        fastcgi_param SCRIPT_FILENAME /var/www/html\$fastcgi_script_name;
         fastcgi_param PATH_INFO \$fastcgi_path_info;
     }
 
