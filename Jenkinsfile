@@ -10,6 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                // Mengambil kode program terbaru dari GitHub
                 checkout scm
             }
         }
@@ -18,6 +19,7 @@ pipeline {
             steps {
                 script {
                     echo "Membangun Docker Image dengan Tag: build-${BUILD_NUMBER}"
+                    // Membangun image dengan tag spesifik nomor build dan tag 'latest'
                     sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER} ."
                     sh "docker build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest ."
                 }
@@ -28,6 +30,7 @@ pipeline {
             steps {
                 script {
                     echo 'Mengunggah Image ke Docker Hub...'
+                    // Otentikasi otomatis menggunakan kredensial Docker Hub yang ada di Jenkins
                     withCredentials([usernamePassword(credentialsId: "${REGISTRY_CRED}", passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
                         sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USER --password-stdin"
                         sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:build-${BUILD_NUMBER}"
@@ -85,7 +88,12 @@ pipeline {
                         nginx:alpine
                     """
 
-                    echo 'Menyuntikkan konfigurasi nginx.conf langsung ke dalam container...'
+                    echo 'Menyalin source code web dari Workspace Jenkins ke dalam container PHP dan Nginx...'
+                    // Ini kunci utama agar halaman web tidak memunculkan eror 404 lagi
+                    sh "docker cp . php_app:/var/www/html/"
+                    sh "docker cp . nginx_webserver:/var/www/html/"
+
+                    echo 'Menyuntikkan konfigurasi nginx.conf langsung ke dalam container Nginx...'
                     sh """
                         docker exec nginx_webserver sh -c 'cat << "EOF" > /etc/nginx/conf.d/default.conf
 server {
@@ -113,7 +121,7 @@ server {
 EOF'
                     """
                     
-                    echo 'Mereload konfigurasi Nginx...'
+                    echo 'Mereload konfigurasi Nginx agar setelan baru aktif...'
                     sh "docker exec nginx_webserver nginx -s reload"
                     
                     echo '=== DEPLOYMENT BERHASIL SELESAI 100% ==='
@@ -124,7 +132,7 @@ EOF'
 
     post {
         always {
-            echo 'Membersihkan sisa build (dangling images) untuk menghemat ruang disk...'
+            echo 'Membersihkan sisa build (dangling images) untuk menghemat ruang disk EC2...'
             sh 'docker image prune -f'
         }
     }
