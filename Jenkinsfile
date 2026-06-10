@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'username_dockerhub_kamu' // Ganti dengan username Docker Hub Anda
+        DOCKER_HUB_USER = 'devrama404' // Ganti dengan username Docker Hub Anda
         IMAGE_NAME      = 'crud-php-app'
         REGISTRY_CRED   = 'dockerhub-credentials-id' // ID Kredensial yang didaftarkan di Jenkins
     }
