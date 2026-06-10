@@ -40,14 +40,55 @@ pipeline {
         stage('Deploy Application') {
             steps {
                 script {
-                    echo 'Menghentikan container lama dan menjalankan stack terbaru...'
+                    echo 'Menghentikan dan menghapus container lama jika ada...'
+                    sh "docker stop nginx_webserver php_app mysql_db || true"
+                    sh "docker rm nginx_webserver php_app mysql_db || true"
                     
-                    // Kita panggil biner docker utama yang dilewati flag compose agar container Jenkins 
-                    // tidak perlu mencari biner 'docker-compose' eksternal yang terpisah.
-                    sh "docker compose down"
-                    sh "docker compose up -d --build"
+                    echo 'Membuat jaringan internal Docker...'
+                    sh "docker network create app-network || true"
                     
-                    echo '=== DEPLOYMENT BERHASIL SELESAI VIA DOCKER V2 ==='
+                    echo 'Menjalankan container Database (MySQL)...'
+                    sh """
+                        docker run -d \
+                        --name mysql_db \
+                        --network app-network \
+                        -e MYSQL_DATABASE=crud_db \
+                        -e MYSQL_ROOT_PASSWORD=rootpassword \
+                        -e MYSQL_USER=user \
+                        -e MYSQL_PASSWORD=userpassword \
+                        -v dbdata:/var/lib/mysql \
+                        -p 3306:3306 \
+                        --restart unless-stopped \
+                        mysql:8.0
+                    """
+                    
+                    echo 'Menjalankan container Aplikasi (PHP-FPM)...'
+                    sh """
+                        docker run -d \
+                        --name php_app \
+                        --network app-network \
+                        -e DB_HOST=mysql_db \
+                        -e DB_DATABASE=crud_db \
+                        -e DB_USERNAME=user \
+                        -e DB_PASSWORD=userpassword \
+                        -v \$(pwd):/var/www/html \
+                        --restart unless-stopped \
+                        ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
+                    """
+                    
+                    echo 'Menjalankan container Web Server (Nginx)...'
+                    sh """
+                        docker run -d \
+                        --name nginx_webserver \
+                        --network app-network \
+                        -p 8080:80 \
+                        -v \$(pwd):/var/www/html \
+                        -v \$(pwd)/nginx/nginx.conf:/etc/nginx/conf.d/default.conf \
+                        --restart unless-stopped \
+                        nginx:alpine
+                    """
+                    
+                    echo '=== DEPLOYMENT BERHASIL SELESAI ==='
                 }
             }
         }
