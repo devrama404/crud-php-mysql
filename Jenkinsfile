@@ -48,8 +48,8 @@ pipeline {
             steps {
                 script {
                     echo 'Menghentikan container lama dan menjalankan container terbaru...'
-                    sh "docker-compose down"
-                    sh "docker-compose up -d --build"
+                    sh "docker compose down"
+                    sh "docker compose up -d --build"
                     echo 'Deployment Berhasil Selesai!'
                 }
             }
