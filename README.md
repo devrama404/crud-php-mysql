@@ -1,239 +1,165 @@
-# 🏪 Sistem Manajemen Produk Multi-Kategori
+# 🚀 Dockerized PHP-MySQL CRUD with Jenkins CI/CD Pipeline
 
-Aplikasi web PHP modern untuk mengelola inventory produk multi-kategori dengan fitur CRUD lengkap, dashboard analitik, dan interface yang user-friendly.
+![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=Jenkins&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
 
-## 🎯 Fitur Utama
-
-### ✅ Core Features
-- **Dashboard Analytics**: Statistik penjualan, total produk, stok, dan nilai inventory
-- **Multi-Product Management**: Mendukung berbagai kategori produk (Handphone, Laptop, Tablet, dll.)
-- **Advanced CRUD Operations**: Create, Read, Update, Delete untuk semua produk
-- **Smart Search & Filter**: Pencarian real-time dan filter berdasarkan kategori
-- **Flexible Sorting**: Urutkan produk berdasarkan brand, harga, stok, atau tanggal
-- **Image Upload**: Upload dan preview gambar produk dengan drag & drop
-- **Stock Management**: Color-coded stock indicators dengan alert stok rendah
-
-### 🎨 User Interface
-- **Modern Design**: Gradient backgrounds dengan animasi smooth
-- **Responsive Layout**: Optimal di desktop, tablet, dan mobile
-- **Interactive Elements**: Hover effects, modal confirmations, lightbox images
-- **Color-coded Status**: Visual indicators untuk stok dan status produk
-
-### 🔒 Security & Performance
-- **Prepared Statements**: Proteksi SQL injection
-- **Input Validation**: Validasi form client-side dan server-side
-- **UTF-8 Support**: Mendukung karakter unicode dan emoji
-- **Optimized Queries**: Database queries yang efisien dengan indexing
-
-## 📋 System Requirements
-
-- **PHP**: 8.0 atau lebih tinggi
-- **Database**: MySQL 8.0 / MariaDB 10.5 atau lebih tinggi
-- **Web Server**: Apache/Nginx atau PHP Built-in Server
-- **Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
-- **Docker**: (Opsional) untuk containerized deployment
-
-## 🚀 Quick Start
-
-#### Database Setup
-
-# Menggunakan terminal MySQL langsung
-```
-mysql -u root -p db_penjualan < database.sql
-```
-
-**Apache/Nginx** (Production):
-- Copy project ke document root web server
-- Pastikan mod_rewrite aktif (untuk Apache)
-- Configure virtual host jika diperlukan
-
-
-## 📁 Project Structure
-
-```
-crud-php-mysql/
-├── 📁 assets/
-│   ├── style.css           # Modern CSS dengan gradient & animations
-│   └── script.js           # Interactive JavaScript features
-├── 📁 config/
-│   └── database.php        # Database connection & configuration
-├── 📁 crud/
-│   ├── index.php           # Product listing dengan search/sort/filter
-│   ├── create.php          # Add new product form
-│   ├── edit.php            # Edit existing product
-│   ├── view.php            # Product detail view
-│   └── delete.php          # Delete product with confirmation
-├── 📁 uploads/             # Product image storage
-├── 📁 database.sql      # Database schema & sample data
-├── 📁 index.php           # Dashboard dengan analytics
-└── 📁 README.md           # This documentation
-```
-
-## 💾 Database Schema
-
-### Tabel: `categories`
-| Field | Type | Description |
-|-------|------|-------------|
-| id | INT (PK, AUTO_INCREMENT) | ID unik kategori |
-| name | VARCHAR(100) | Nama kategori (Handphone, Laptop, dll.) |
-| icon | VARCHAR(50) | Icon text (contoh: [HP], [LT]) |
-| color | VARCHAR(20) | Hex color code untuk UI |
-| created_at | TIMESTAMP | Waktu dibuat |
-
-### Tabel: `products`
-| Field | Type | Description |
-|-------|------|-------------|
-| id | INT (PK, AUTO_INCREMENT) | ID unik produk |
-| category_id | INT (FK) | Reference ke tabel categories |
-| brand | VARCHAR(100) | Merek produk |
-| model | VARCHAR(150) | Model/tipe produk |
-| price | DECIMAL(15,2) | Harga dalam Rupiah |
-| stock | INT | Jumlah stok tersedia |
-| description | TEXT | Deskripsi spesifikasi produk |
-| image | VARCHAR(255) | Path file gambar produk |
-| created_at | TIMESTAMP | Waktu dibuat |
-| updated_at | TIMESTAMP | Waktu terakhir update |
-
-## 🎨 User Experience Features
-
-### Dashboard Analytics
-- **Total Products**: Jumlah semua produk
-- **Total Stock**: Jumlah unit stok keseluruhan
-- **Inventory Value**: Nilai total inventory dalam Rupiah
-- **Category Breakdown**: Produk per kategori dengan nilai inventory
-
-### Advanced Product Management
-- **Real-time Search**: Cari berdasarkan brand atau model
-- **Category Filtering**: Filter produk berdasarkan kategori
-- **Multiple Sorting Options**:
-  - 🕒 Terbaru/Terlima (berdasarkan tanggal)
-  - 📝 Brand A-Z / Z-A
-  - 💰 Harga Rendah/Tinggi
-  - 📦 Stok Sedikit/Banyak
-
-### Visual Indicators
-- **Stock Status Colors**:
-  - 🟢 Hijau: Stok tinggi (>15 unit)
-  - 🟡 Kuning: Stok sedang (6-15 unit)
-  - 🔴 Merah: Stok rendah (≤5 unit)
-- **Category Badges**: Setiap produk ditandai dengan kategori dan warna
-
-## 🔧 API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Dashboard utama dengan statistik |
-| `/crud/index.php` | GET | List semua produk dengan filter/sort |
-| `/crud/create.php` | GET/POST | Form tambah produk baru |
-| `/crud/edit.php?id=X` | GET/POST | Form edit produk |
-| `/crud/view.php?id=X` | GET | Detail produk |
-| `/crud/delete.php?id=X` | POST | Hapus produk |
-
-### Query Parameters (GET)
-- `search`: Pencarian berdasarkan brand/model
-- `category_id`: Filter berdasarkan kategori
-- `sort`: Sorting (brand_asc, price_desc, dll.)
-- `stock`: Filter stok (low untuk ≤10)
-
-## 🐳 Docker Configuration
-
-### Services
-- **mysql**: MySQL 8.0 database dengan persistent volume
-- **php-app**: PHP 8.0 dengan Apache, auto-reload untuk development
-
-### Networks
-- **lab5_network**: Isolated network untuk komunikasi antar container
-
-### Volumes
-- **mysql_data**: Persistent storage untuk database
-- **./:/var/www/html**: Source code mounting
-- **./uploads:/var/www/html/uploads**: File upload storage
-
-## 🧪 Testing Guide
-
-### Basic CRUD Testing
-1. **Create**: Tambah produk baru dengan gambar
-2. **Read**: Lihat daftar produk dan detail
-3. **Update**: Edit informasi produk existing
-4. **Delete**: Hapus produk dengan konfirmasi
-
-### Advanced Features Testing
-1. **Search**: Cari produk berdasarkan brand
-2. **Filter**: Filter berdasarkan kategori
-3. **Sort**: Test semua opsi sorting
-4. **Upload**: Test upload gambar dengan drag & drop
-5. **Responsive**: Test di berbagai ukuran layar
-
-### Performance Testing
-- Load testing dengan 100+ produk
-- Search performance dengan large dataset
-- Image upload dengan berbagai format/size
-
-### File Permission Issues
-```bash
-# Fix upload directory permissions
-chmod 755 uploads/
-chmod 644 uploads/*
-```
-
-### Common Errors
-- **"Access denied for user"**: Check database credentials
-- **"Table doesn't exist"**: Re-import `database.sql`
-- **"File upload failed"**: Check upload directory permissions
-- **"Emoji characters"**: Database menggunakan UTF-8, pastikan browser support
-
-## 🔄 Migration Guide
-
-### From V1 to V2
-1. Backup data existing jika ada
-2. Stop aplikasi lama
-3. Import `database.sql` untuk schema baru
-4. Migrate data dari tabel lama ke struktur baru
-5. Update semua file path references
-6. Test semua functionality
-
-## 📈 Performance Optimization
-
-### Database Optimization
-- **Indexes**: Primary keys, foreign keys, dan frequently queried columns
-- **Query Optimization**: Efficient JOINs dan WHERE clauses
-- **Connection Pooling**: Persistent connections
-
-### Frontend Optimization
-- **Lazy Loading**: Images dimuat saat diperlukan
-- **Minification**: CSS/JS compression
-- **Caching**: Browser caching untuk static assets
-
-### Server Optimization
-- **OPcache**: PHP opcode caching
-- **Compression**: Gzip compression untuk responses
-- **CDN**: Static assets delivery
-
-### Code Standards
-- **PHP**: PSR-12 coding standards
-- **JavaScript**: ESLint dengan Airbnb config
-- **CSS**: BEM methodology
-- **Git**: Conventional commits
-
-## 📝 Academic Notes
-
-**Course**: LAB 5 - Web Programming
-**Objective**: Implementasi CRUD dengan PHP & MySQL
-
-### Learning Outcomes
-1. **Database Design**: Relational database dengan foreign keys
-2. **PHP Backend**: Server-side programming dengan security best practices
-3. **Frontend Integration**: HTML/CSS/JS untuk interactive web applications
-4. **Docker Containerization**: Modern deployment practices
-5. **User Experience**: Responsive design dan intuitive interfaces
-
-### Technical Stack
-- **Backend**: PHP 8.0, MySQL 8.0
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Tools**: Docker, Composer, Git
-- **Architecture**: MVC-inspired structure
+Proyek ini mendemonstrasikan implementasi **Kontainerisasi (Dockerization)** pada aplikasi CRUD berbasis PHP-MySQL menggunakan arsitektur *multi-container* (PHP-FPM, Nginx, MySQL) dan otomatisasi *deployment* secara terintegrasi penuh menggunakan **Jenkins CI/CD Pipeline** melalui integrasi **GitHub Webhook**.
 
 ---
 
-**LAB 5 Quiz Project V2** - Modern Multi-Product Management System
-© 2026 - Built with ❤️ using PHP & MySQL
+## 📑 Daftar Isi
+1. [Arsitektur Proyek](#-arsitektur-proyek)
+2. [Prasyarat (Prerequisites)](#%EF%B8%8F-prasyarat-prerequisites)
+3. [Struktur Direktori](#-struktur-direktori)
+4. [Panduan Instalasi & Deployment](#-panduan-instalasi--deployment)
+5. [Konfigurasi CI/CD & Webhook](#-konfigurasi-cicd--webhook)
+6. [Alur Pipeline Jenkins](#-alur-pipeline-jenkins)
+
+---
+
+## 🏗️ Arsitektur Proyek
+
+Proyek ini dipisahkan menjadi beberapa servis yang terisolasi untuk skalabilitas dan keamanan:
+* **Web Server:** Nginx (Reverse Proxy)
+* **Application:** PHP 8.2 FPM (berjalan sebagai non-root user `www-data`)
+* **Database:** MySQL 8.0 (dengan inisialisasi skema otomatis)
+* **CI/CD Server:** Jenkins (Berjalan dengan metode *Docker-outside-of-Docker* / DooD)
+
+---
+
+## 🛠️ Prasyarat (Prerequisites)
+
+Sebelum memulai, pastikan sistem Anda telah memiliki:
+* [Docker](https://docs.docker.com/get-docker/) terinstal.
+* [Docker Compose](https://docs.docker.com/compose/install/) terinstal.
+* Akun [GitHub](https://github.com/).
+* Akun [Docker Hub](https://hub.docker.com/).
+
+---
+
+## 📂 Struktur Direktori
+
+```text
+.
+├── nginx/
+│   └── nginx.conf            # Konfigurasi Reverse Proxy Nginx
+├── src/                      # Source code aplikasi PHP (opsional, sesuaikan dengan repo Anda)
+├── database.sql              # Skema awal database untuk auto-import MySQL
+├── docker-compose.yml        # Orkestrasi Multi-Container
+├── Dockerfile                # Multi-stage build untuk image PHP-FPM
+└── Jenkinsfile               # Declarative Pipeline CI/CD Script
+
+```
+
+---
+
+## 🚀 Panduan Instalasi & Deployment
+
+### 1. Persiapan Repositori
+
+Lakukan *Fork* repositori ini, kemudian *clone* ke environment lokal/server Anda:
+
+```bash
+git clone [https://github.com/](https://github.com/)<username-anda>/crud-php-mysql.git
+cd crud-php-mysql
+
+```
+
+### 2. Menjalankan Server Jenkins (DooD Setup)
+
+Jalankan perintah berikut untuk membuat kontainer Jenkins yang memiliki akses ke daemon Docker Host:
+
+```bash
+docker run -d \
+  --name jenkins-server \
+  -p 8082:8080 \
+  -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(which docker):/usr/bin/docker \
+  --user root \
+  --restart unless-stopped \
+  jenkins/jenkins:lts
+
+```
+
+> **Catatan:** Port Jenkins dialokasikan ke `8082` agar tidak bentrok dengan port `8080` yang digunakan oleh aplikasi utama.
+
+**Unlock Jenkins:**
+
+1. Cek log kontainer untuk mendapatkan password admin awal:
+```bash
+docker logs jenkins-server
+
+```
+
+
+2. Akses `http://localhost:8082` (atau IP server), masukkan password, lalu selesaikan instalasi *Suggested Plugins*.
+
+---
+
+## ⚙️ Konfigurasi CI/CD & Webhook
+
+### 1. Konfigurasi Kredensial di Jenkins
+
+Agar Jenkins dapat melakukan *push* image ke Docker Hub, simpan kredensial Anda:
+
+1. Navigasi ke: **Manage Jenkins** > **Credentials** > **System** > **Global credentials**.
+2. Klik **Add Credentials** > Pilih **Username with password**.
+3. Masukkan data Docker Hub Anda.
+4. Set **ID** menjadi: `dockerhub-credentials-id` (harus sama dengan `REGISTRY_CRED` di dalam `Jenkinsfile`).
+
+### 2. Install Plugin yang Dibutuhkan
+
+Buka **Manage Jenkins** > **Plugins** > **Available Plugins** dan instal:
+
+* `Docker Pipeline`
+* `Credentials Binding`
+
+### 3. Membuat Pipeline
+
+1. Buat **New Item** > Pilih **Pipeline** > Beri nama proyek.
+2. Centang **GitHub hook trigger for GITScm polling**.
+3. Di bagian Pipeline, pilih **Pipeline script from SCM**.
+4. Set SCM ke **Git**, masukkan URL repositori fork Anda, dan set branch ke `*/main` atau `*/master`.
+
+### 4. Setup GitHub Webhook
+
+1. Buka Repositori GitHub Anda > **Settings** > **Webhooks** > **Add webhook**.
+2. **Payload URL:** `http://<IP_PUBLIK_SERVER_JENKINS>:8082/github-webhook/`
+3. **Content type:** `application/json`
+4. Simpan konfigurasi.
+
+---
+
+## 🔄 Alur Pipeline Jenkins
+
+Ketika terjadi *push* ke repositori (via Webhook), Jenkins otomatis menjalankan tahap berikut (didefinisikan di `Jenkinsfile`):
+
+1. **Checkout:** Mengambil kode terbaru dari GitHub.
+2. **Lint Check:** Memvalidasi sintaks PHP.
+3. **Build Docker Image:** Membangun image menggunakan `Dockerfile` (Multi-stage build).
+4. **Push Image:** Mengunggah image ke Docker Hub (tagging spesifik & latest).
+5. **Deploy Application:** Menghentikan kontainer lama dan merestart menggunakan versi terbaru via `docker-compose`.
+6. **Post (Clean Up):** Membersihkan *dangling images* untuk menghemat penyimpanan.
+
+---
+
+## 🧪 Validasi Akhir
+
+Setelah pipeline berhasil berjalan:
+
+* Aplikasi CRUD dapat diakses di: `http://localhost:8080`
+* Database berjalan di port `3306`
+
+Untuk memicu otomatisasi, lakukan perubahan pada file dan jalankan:
+
+```bash
+git add .
+git commit -m "Feat: Implementasi Docker multi-container dan otomatisasi Jenkinsfile CI/CD"
+git push origin main
+
+```
