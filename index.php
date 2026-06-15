@@ -43,7 +43,7 @@ $stats = $stats_result->fetch_assoc();
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏪 Sistem Manajemen Produk V2</h1>
+            <h1>🏪 Sistem Manajemen Produk V3</h1>
             <p>Multi-Product Management System</p>
         </div>
 
