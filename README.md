@@ -99,6 +99,10 @@ docker logs jenkins-server
 
 2. Akses `http://localhost:8082` (atau IP server), masukkan password, lalu selesaikan instalasi *Suggested Plugins*.
 
+Note : setup domain dan ssl jenkins
+### Link : [jenkins.devrama.my.id](url)
+![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/08ghxyjti1h8igf1i5t8.png)
+
 ---
 
 ## ⚙️ Konfigurasi CI/CD & Webhook
